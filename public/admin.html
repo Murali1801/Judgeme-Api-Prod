@@ -214,6 +214,57 @@
         .logout-btn:hover {
             background: #dc2626;
         }
+
+        /* Improved Filter Styling */
+        .filters {
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        select.filter-btn {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+            min-width: 200px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            background: #f1f5f9;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
     </style>
 </head>
 
@@ -222,17 +273,26 @@
     <div class="container">
         <header>
             <h1>Review Admin</h1>
-            <div id="stats" style="font-size: 0.9rem; color: #64748b; font-weight: 500;">Loading stats...</div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
+
+        <div class="stats-bar" id="stats-container">
+            <div class="stat-item">
+                <span class="stat-label">Total Reviews</span>
+                <span class="stat-value" id="stat-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Average Rating</span>
+                <span class="stat-value" id="stat-avg">0.0</span>
+            </div>
+        </div>
 
         <div class="filters">
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <button class="filter-btn active" onclick="filterReviews('all')">All Reviews</button>
                 <button class="filter-btn" onclick="filterReviews('pinned')">Pinned Only</button>
             </div>
-            <select id="handle-filter" class="filter-btn" onchange="renderReviews()"
-                style="outline: none; padding-right: 2rem;">
+            <select id="handle-filter" class="filter-btn" onchange="renderReviews()">
                 <option value="all">All Products</option>
             </select>
         </div>
@@ -294,11 +354,6 @@
                     handleFilter.appendChild(opt);
                 });
 
-                const statsEl = document.getElementById('stats');
-                if (statsEl && data.stats) {
-                    statsEl.textContent = `${data.stats.count} Reviews | ${data.stats.average} Average Rating`;
-                }
-
                 if (allReviews.length === 0) {
                     document.getElementById('reviews-container').innerHTML =
                         '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">' +
@@ -329,6 +384,8 @@
                 const handleMatch = handleFilter === 'all' ? true : r.handle === handleFilter;
                 return pinMatch && handleMatch;
             });
+
+            updateStats(filtered);
 
             if (filtered.length === 0) {
                 container.innerHTML = '<p>No reviews found matching this filter.</p>';
@@ -403,6 +460,15 @@
                 console.error(e);
                 alert('Error connecting to server');
             }
+        }
+
+        function updateStats(filtered) {
+            const count = filtered.length;
+            const totalRating = filtered.reduce((sum, r) => sum + r.rating, 0);
+            const average = count > 0 ? (totalRating / count).toFixed(1) : '0.0';
+
+            document.getElementById('stat-count').textContent = count;
+            document.getElementById('stat-avg').textContent = average;
         }
 
         function filterReviews(type) {
