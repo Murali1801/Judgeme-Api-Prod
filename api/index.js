@@ -497,7 +497,7 @@ app.get('/api/product-reviews', async (req, res) => {
 
         const filteredReviews = rawReviews.filter(r => {
             const handleMatch = String(r.product_handle).toLowerCase() === String(targetHandle).toLowerCase();
-            const isPublished = r.published === true || r.curated === 'ok' || r.hidden === false;
+            const isPublished = (r.published === true || r.curated === 'ok') && r.hidden !== true;
 
             // Log discrepancy details if handle or status is weird
             if (!handleMatch && r.product_handle && r.product_handle.includes(targetHandle)) {
