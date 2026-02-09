@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Judge.me Review Admin</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --primary-color: #3b82f6;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        button.filter-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        button.filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-card.pinned {
+            border: 2px solid var(--primary-color);
+            background-color: #f0f9ff;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #eee;
+            object-fit: cover;
+        }
+
+        .author-info h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .author-info span {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .rating {
+            color: #f59e0b;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .body {
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .pin-btn {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .pin-btn.is-pinned {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+
+        .media-grid {
+            display: flex;
+            gap: 8px;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .media-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .pin-btn.is-pinned:hover {
+            background-color: #fecaca;
+        }
+
+        .pin-btn.not-pinned {
+            background-color: #eff6ff;
+            color: var(--primary-color);
+        }
+
+        .pin-btn.not-pinned:hover {
+            background-color: #dbeafe;
+        }
+
+        .pin-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: var(--primary-color);
+            display: none;
+        }
+
+        .review-card.pinned .pin-icon {
+            display: block;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Review Admin</h1>
+            <div id="stats" style="font-size: 0.9rem; color: #64748b; font-weight: 500;">Loading stats...</div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterReviews('all')">All Reviews</button>
+            <button class="filter-btn" onclick="filterReviews('pinned')">Pinned Only</button>
+        </div>
+
+        <div class="reviews-grid" id="reviews-container">
+            <!-- Reviews will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        // Auth check
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let allReviews = [];
+        let currentFilter = 'all';
+
+        async function fetchReviews() {
+            try {
+                const response = await fetch('/api/product-reviews?handle=version-h1', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        logout();
+                        return;
+                    }
+
+                    let errorMessage = `Server error (${response.status})`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = await response.text();
+                    }
+
+                    console.error('Server error response:', errorMessage);
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                console.log('📦 Received Review Data:', data);
+
+                allReviews = data.reviews;
+
+                const statsEl = document.getElementById('stats');
+                if (statsEl && data.stats) {
+                    statsEl.textContent = `${data.stats.count} Reviews | ${data.stats.average} Average Rating`;
+                }
+
+                if (allReviews.length === 0) {
+                    document.getElementById('reviews-container').innerHTML =
+                        '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">' +
+                        '<h3>No reviews found</h3>' +
+                        '<p>Reviews for "version-h1" will appear here once they are submitted and published.</p>' +
+                        '</div>';
+                } else {
+                    renderReviews();
+                }
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+                document.getElementById('reviews-container').innerHTML =
+                    `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #ef4444;">` +
+                    `<h3>Error loading reviews</h3>` +
+                    `<p style="background: #fee2e2; padding: 10px; border-radius: 4px; display: inline-block; margin-top: 10px;">${error.message}</p>` +
+                    `<p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">Check your JUDGE_ME_API_TOKEN and SHOP_DOMAIN in Vercel settings.</p>` +
+                    `</div>`;
+            }
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-container');
+            container.innerHTML = '';
+
+            const filtered = allReviews.filter(r => {
+                if (currentFilter === 'pinned') return r.is_pinned;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p>No reviews found matching this filter.</p>';
+                return;
+            }
+
+            filtered.forEach(review => {
+                const card = document.createElement('div');
+                card.className = `review-card ${review.is_pinned ? 'pinned' : ''}`;
+
+                const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+
+                card.innerHTML = `
+                    <div class="pin-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/></svg>
+                    </div>
+                    <div class="card-header">
+                        <img src="${review.profile_pic}" alt="${review.author}" class="avatar">
+                        <div class="author-info">
+                            <h3>${review.author}</h3>
+                            <span>${new Date(review.date).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div class="rating">${stars}</div>
+                    ${review.title ? `<div class="title">${review.title}</div>` : ''}
+                    <div class="body">${review.body}</div>
+                    
+                    ${review.media && review.media.length > 0 ? `
+                        <div class="media-grid">
+                            ${review.media.map(m => `
+                                <img src="${m.url}" 
+                                     class="media-item" 
+                                     alt="Review Media" 
+                                     onerror="this.style.display='none'; console.warn('Failed to load image:', '${m.url}')">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <button class="pin-btn ${review.is_pinned ? 'is-pinned' : 'not-pinned'}" 
+                            onclick="togglePin(${review.id}, ${!review.is_pinned})">
+                        ${review.is_pinned ? 'Unpin Review' : 'Pin Review'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function togglePin(id, shouldPin) {
+            const action = shouldPin ? 'pin' : 'unpin';
+            try {
+                const res = await fetch('/api/toggle-pin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ id: id, action: action })
+                });
+
+                if (res.ok) {
+                    // Update local state optimistically
+                    const review = allReviews.find(r => r.id === id);
+                    if (review) {
+                        review.is_pinned = shouldPin;
+                        renderReviews();
+                    }
+                } else {
+                    alert('Failed to update pin status');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error connecting to server');
+            }
+        }
+
+        function filterReviews(type) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderReviews();
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = '/public/login.html';
+        }
+
+        // Initial Load
+        fetchReviews();
+    </script>
+</body>
+
+</html>

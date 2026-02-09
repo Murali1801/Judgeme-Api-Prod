@@ -1,0 +1,80 @@
+{
+	"info": {
+		"_postman_id": "8c5e1c2a-9f4a-4b9d-a4e5-9c5e5e5e5e5e",
+		"name": "Judge.me API Wrapper",
+		"description": "Collection for testing the Flask wrapper for Judge.me API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Product Reviews",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/product-reviews?handle=version-h1",
+					"protocol": "http",
+					"host": [
+						"127.0.0.1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"product-reviews"
+					],
+					"query": [
+						{
+							"key": "handle",
+							"value": "version-h1"
+						}
+					]
+				},
+				"description": "Fetches reviews for a specific product handle."
+			},
+			"response": []
+		},
+		{
+			"name": "Submit Review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"rating\": 5,\n    \"title\": \"Great Product!\",\n    \"body\": \"This is a test review submitted via Postman.\",\n    \"handle\": \"version-h1\",\n    \"media\": []\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/submit-review",
+					"protocol": "http",
+					"host": [
+						"127.0.0.1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"submit-review"
+					]
+				},
+				"description": "Submits a new review to Judge.me via the Flask wrapper."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://127.0.0.1:5000",
+			"type": "string"
+		}
+	]
+}

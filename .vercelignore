@@ -1,0 +1,14 @@
+# Vercel Ignore List
+.env
+.env.*
+config/service-account.json
+config/users.json
+config/pinned_reviews.json
+docs/
+node_modules/
+README.md
+DEPLOYMENT.md
+firestore.rules
+.git
+.gitignore
+.vscode

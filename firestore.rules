@@ -1,0 +1,12 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Secure configuration for Judge.me API Wrapper
+    // Note: The Node.js server uses Admin SDK which bypasses these rules.
+    // These rules prevent any direct client-side access to your data.
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

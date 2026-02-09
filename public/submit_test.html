@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Review - Armor Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-item {
+            width: 100%;
+            padding-top: 100%;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #eee;
+        }
+
+        .preview-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+            display: block;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Post a Review</h1>
+
+        <form id="reviewForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Rating</label>
+                <select id="rating">
+                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                    <option value="2">⭐⭐ 2 Stars</option>
+                    <option value="1">⭐ 1 Star</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Review Title</label>
+                <input type="text" id="title" placeholder="Great quality!">
+            </div>
+
+            <div class="form-group">
+                <label>Review Body</label>
+                <textarea id="body" rows="4" placeholder="Tell us more about it..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Product Handle</label>
+                <input type="text" id="handle" value="version-h1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Photos</label>
+                <input type="file" id="fileInput" multiple accept="image/*">
+                <div id="imagePreview" class="image-preview-grid"></div>
+            </div>
+
+            <button type="submit" id="submitBtn">Submit Review</button>
+        </form>
+
+        <div id="status" class="status-msg"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const form = document.getElementById('reviewForm');
+        const statusDiv = document.getElementById('status');
+        const btn = document.getElementById('submitBtn');
+
+        let base64Images = [];
+
+        // Handle Image Selection and Preview
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            imagePreview.innerHTML = '';
+            base64Images = [];
+
+            for (const file of files) {
+                const base64 = await convertToBase64(file);
+                base64Images.push(base64);
+
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.innerHTML = `<img src="${base64}">`;
+                imagePreview.appendChild(div);
+            }
+        });
+
+        const convertToBase64 = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+            });
+        };
+
+        // Handle Form Submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> Submitting...';
+            statusDiv.className = 'status-msg';
+            statusDiv.innerHTML = '';
+
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                rating: document.getElementById('rating').value,
+                title: document.getElementById('title').value,
+                body: document.getElementById('body').value,
+                handle: document.getElementById('handle').value,
+                pictures: base64Images
+            };
+
+            // Vercel 4.5MB Limit Warning
+            const payloadSize = JSON.stringify(payload).length / (1024 * 1024);
+            console.log(`Payload Size: ${payloadSize.toFixed(2)} MB`);
+
+            if (payloadSize > 4.2) { // Allow some buffer
+                statusDiv.className = 'status-msg status-error';
+                statusDiv.innerHTML = `⚠️ Request too large (${payloadSize.toFixed(1)}MB). Vercel limits requests to 4.5MB. Please upload fewer or smaller images.`;
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Review';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/submit-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = await response.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch (e) {
+                    console.warn('Response was not JSON:', text);
+                    data = { error: 'Server Error', details: text };
+                }
+
+                if (response.ok) {
+                    statusDiv.className = 'status-msg status-success';
+                    statusDiv.innerHTML = '🎉 Success! Your review was submitted. Photos will appear in 2-5 minutes.';
+                    form.reset();
+                    imagePreview.innerHTML = '';
+                } else {
+                    const errorMsg = data.error || data.message || `Error ${response.status}: ${text.substring(0, 100)}`;
+                    throw new Error(errorMsg);
+                }
+            } catch (err) {
+                statusDiv.className = 'status-msg status-error';
+                statusDiv.innerHTML = '❌ ' + err.message;
+                console.error('Final Error:', err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Review';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
