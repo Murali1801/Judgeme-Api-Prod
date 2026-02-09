@@ -113,6 +113,18 @@
         .author-info span {
             font-size: 0.875rem;
             color: #64748b;
+            display: block;
+        }
+
+        .handle-tag {
+            font-size: 0.75rem;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-top: 4px;
+            display: inline-block;
+            font-weight: 600;
         }
 
         .rating {
@@ -215,8 +227,14 @@
         </header>
 
         <div class="filters">
-            <button class="filter-btn active" onclick="filterReviews('all')">All Reviews</button>
-            <button class="filter-btn" onclick="filterReviews('pinned')">Pinned Only</button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button class="filter-btn active" onclick="filterReviews('all')">All Reviews</button>
+                <button class="filter-btn" onclick="filterReviews('pinned')">Pinned Only</button>
+            </div>
+            <select id="handle-filter" class="filter-btn" onchange="renderReviews()"
+                style="outline: none; padding-right: 2rem;">
+                <option value="all">All Products</option>
+            </select>
         </div>
 
         <div class="reviews-grid" id="reviews-container">
@@ -236,7 +254,7 @@
 
         async function fetchReviews() {
             try {
-                const response = await fetch('/api/product-reviews?handle=version-h1', {
+                const response = await fetch('/api/product-reviews?handle=all', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -263,6 +281,19 @@
 
                 allReviews = data.reviews;
 
+                // Populate Handle Filter
+                const handleFilter = document.getElementById('handle-filter');
+                const handles = [...new Set(allReviews.map(r => r.handle))].filter(Boolean);
+
+                // Keep "All Products" and add the others
+                handleFilter.innerHTML = '<option value="all">All Products</option>';
+                handles.sort().forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h;
+                    opt.textContent = h;
+                    handleFilter.appendChild(opt);
+                });
+
                 const statsEl = document.getElementById('stats');
                 if (statsEl && data.stats) {
                     statsEl.textContent = `${data.stats.count} Reviews | ${data.stats.average} Average Rating`;
@@ -272,7 +303,7 @@
                     document.getElementById('reviews-container').innerHTML =
                         '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">' +
                         '<h3>No reviews found</h3>' +
-                        '<p>Reviews for "version-h1" will appear here once they are submitted and published.</p>' +
+                        '<p>Reviews will appear here once they are submitted and published.</p>' +
                         '</div>';
                 } else {
                     renderReviews();
@@ -290,11 +321,13 @@
 
         function renderReviews() {
             const container = document.getElementById('reviews-container');
+            const handleFilter = document.getElementById('handle-filter').value;
             container.innerHTML = '';
 
             const filtered = allReviews.filter(r => {
-                if (currentFilter === 'pinned') return r.is_pinned;
-                return true;
+                const pinMatch = currentFilter === 'pinned' ? r.is_pinned : true;
+                const handleMatch = handleFilter === 'all' ? true : r.handle === handleFilter;
+                return pinMatch && handleMatch;
             });
 
             if (filtered.length === 0) {
@@ -317,6 +350,7 @@
                         <div class="author-info">
                             <h3>${review.author}</h3>
                             <span>${new Date(review.date).toLocaleDateString()}</span>
+                            ${review.handle ? `<span class="handle-tag">${review.handle}</span>` : ''}
                         </div>
                     </div>
                     <div class="rating">${stars}</div>

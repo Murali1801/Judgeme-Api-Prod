@@ -496,11 +496,12 @@ app.get('/api/product-reviews', async (req, res) => {
         console.log(`- Total shop reviews: ${rawReviews.length}`);
 
         const filteredReviews = rawReviews.filter(r => {
-            const handleMatch = String(r.product_handle).toLowerCase() === String(targetHandle).toLowerCase();
+            const isAll = targetHandle === 'all';
+            const handleMatch = isAll || String(r.product_handle).toLowerCase() === String(targetHandle).toLowerCase();
             const isPublished = (r.published === true || r.curated === 'ok') && r.hidden !== true;
 
             // Log discrepancy details if handle or status is weird
-            if (!handleMatch && r.product_handle && r.product_handle.includes(targetHandle)) {
+            if (!isAll && !handleMatch && r.product_handle && r.product_handle.includes(targetHandle)) {
                 console.log(`  🔍 Partial handle match found: "${r.product_handle}" vs "${targetHandle}"`);
             }
 
@@ -580,6 +581,7 @@ app.get('/api/product-reviews', async (req, res) => {
                 is_pinned: pinnedIds.has(r.id),
                 is_verified: ['buyer', 'verified_buyer', 'email'].includes(r.verified),
                 media: media,
+                handle: r.product_handle,
                 title: r.title,
                 date: r.created_at
             });
