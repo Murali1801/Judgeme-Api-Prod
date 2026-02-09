@@ -92,17 +92,23 @@ async function loadPinnedIds() {
         if (useFirestore && db) {
             const doc = await db.collection('pinned_reviews').doc('pins').get();
             if (doc.exists) {
-                return new Set(doc.data().ids || []);
+                const ids = doc.data().ids || [];
+                console.log(`✅ Loaded ${ids.length} pinned IDs from Firestore`);
+                return new Set(ids.map(id => Number(id)));
+            } else {
+                console.log('ℹ️ No pinned IDs document found in Firestore, returning empty set');
             }
         } else {
             // Local file fallback
             if (fs.existsSync(PINNED_FILE)) {
                 const data = fs.readFileSync(PINNED_FILE, 'utf-8');
-                return new Set(JSON.parse(data));
+                const ids = JSON.parse(data) || [];
+                console.log(`✅ Loaded ${ids.length} pinned IDs from local file`);
+                return new Set(ids.map(id => Number(id)));
             }
         }
     } catch (error) {
-        console.error('Error loading pinned reviews:', error);
+        console.error('❌ Error loading pinned reviews:', error);
     }
     return new Set();
 }
@@ -111,11 +117,14 @@ async function savePinnedIds(pinnedSet) {
     try {
         if (useFirestore && db) {
             await db.collection('pinned_reviews').doc('pins').set({
-                ids: [...pinnedSet]
+                ids: [...pinnedSet],
+                updated_at: admin.firestore.FieldValue.serverTimestamp()
             });
+            console.log(`✅ Successfully saved ${pinnedSet.size} pinned IDs to Firestore`);
         } else if (!process.env.VERCEL) {
             // Local file fallback (only if not on Vercel)
             fs.writeFileSync(PINNED_FILE, JSON.stringify([...pinnedSet]));
+            console.log(`✅ Successfully saved ${pinnedSet.size} pinned IDs to local file`);
         } else {
             console.warn('⚠️  Vercel: Cannot save pinned reviews to local filesystem. Use Firestore for persistent pinning.');
         }
@@ -322,8 +331,8 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Toggle pin (public)
-app.post('/api/toggle-pin', async (req, res) => {
+// Toggle pin (protected)
+app.post('/api/toggle-pin', authenticateToken, async (req, res) => {
     try {
         const { id, action } = req.body;
 
@@ -331,12 +340,13 @@ app.post('/api/toggle-pin', async (req, res) => {
             return res.status(400).json({ error: 'Missing id or action' });
         }
 
+        const numericId = Number(id);
         const pinnedIds = await loadPinnedIds();
 
         if (action === 'pin') {
-            pinnedIds.add(id);
+            pinnedIds.add(numericId);
         } else if (action === 'unpin') {
-            pinnedIds.delete(id);
+            pinnedIds.delete(numericId);
         }
 
         await savePinnedIds(pinnedIds);
@@ -578,7 +588,7 @@ app.get('/api/product-reviews', async (req, res) => {
                 rating: rating,
                 author: authorName,
                 profile_pic: `${baseUrl}?${params}`,
-                is_pinned: pinnedIds.has(r.id),
+                is_pinned: pinnedIds.has(Number(r.id)),
                 is_verified: ['buyer', 'verified_buyer', 'email'].includes(r.verified),
                 media: media,
                 handle: r.product_handle,
