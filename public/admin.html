@@ -4,266 +4,437 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Judge.me Review Admin</title>
+    <title>Judge.me | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --text-color: #1e293b;
-            --primary-color: #3b82f6;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --surface: rgba(255, 255, 255, 0.8);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: rgba(226, 232, 240, 0.8);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 2rem;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 4rem;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1280px;
             margin: 0 auto;
+            padding: 2rem;
         }
 
         header {
-            margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
         }
 
         h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0f172a 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Stats Bento Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #0f172a;
-            margin: 0;
+            color: var(--text-main);
         }
 
-        .filters {
+        .stat-value span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-left: 0.25rem;
+            font-weight: 400;
+        }
+
+        /* Controls Row */
+        .controls-row {
             display: flex;
-            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
+            gap: 2rem;
+            flex-wrap: wrap;
+            animation: fadeIn 1s ease-out;
         }
 
-        button.filter-btn {
-            background: white;
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
+        .filter-group {
+            display: flex;
+            background: #e2e8f0;
+            padding: 0.375rem;
+            border-radius: 0.75rem;
+            gap: 0.25rem;
+        }
+
+        .filter-btn {
+            border: none;
+            padding: 0.625rem 1.25rem;
             border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .filter-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+            min-width: 240px;
+        }
+
+        .custom-select {
+            width: 100%;
+            appearance: none;
+            background: white;
+            border: 1px solid var(--border);
+            padding: 0.75rem 1.25rem;
+            padding-right: 3rem;
+            border-radius: 0.75rem;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-main);
             cursor: pointer;
             transition: all 0.2s;
-            font-weight: 500;
+            box-shadow: var(--shadow-sm);
         }
 
-        button.filter-btn.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
+        .custom-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
+        .select-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-muted);
+        }
+
+        /* Review Grid */
         .reviews-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2rem;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @media (max-width: 640px) {
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .review-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 1rem;
-            padding: 1.5rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2rem;
             position: relative;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow-sm);
         }
 
         .review-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: var(--primary);
         }
 
         .review-card.pinned {
-            border: 2px solid var(--primary-color);
-            background-color: #f0f9ff;
+            border: 2px solid var(--primary);
+            background: linear-gradient(to bottom right, #ffffff, #f5f3ff);
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: #eee;
+            width: 56px;
+            height: 56px;
+            border-radius: 1rem;
             object-fit: cover;
+            box-shadow: var(--shadow-sm);
+            background: #f1f5f9;
         }
 
         .author-info h3 {
-            margin: 0;
-            font-size: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
         }
 
-        .author-info span {
-            font-size: 0.875rem;
-            color: #64748b;
-            display: block;
+        .author-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .author-date {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
         }
 
         .handle-tag {
             font-size: 0.75rem;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 2px 8px;
-            border-radius: 999px;
-            margin-top: 4px;
-            display: inline-block;
             font-weight: 600;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            align-self: flex-start;
         }
 
-        .rating {
-            color: #f59e0b;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
+        .rating-stars {
+            color: #fbbf24;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
         }
 
-        .title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .review-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+            color: #1e293b;
         }
 
-        .body {
+        .review-body {
+            font-size: 1rem;
+            line-height: 1.6;
             color: #475569;
-            font-size: 0.95rem;
-            line-height: 1.5;
             flex-grow: 1;
+            margin-bottom: 1.5rem;
         }
 
-        .pin-btn {
-            margin-top: 1rem;
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .pin-btn.is-pinned {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-
-        .media-grid {
+        .media-overflow {
             display: flex;
-            gap: 8px;
-            margin-top: 1rem;
-            flex-wrap: wrap;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            scrollbar-width: none;
         }
 
-        .media-item {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-        }
-
-        .pin-btn.is-pinned:hover {
-            background-color: #fecaca;
-        }
-
-        .pin-btn.not-pinned {
-            background-color: #eff6ff;
-            color: var(--primary-color);
-        }
-
-        .pin-btn.not-pinned:hover {
-            background-color: #dbeafe;
-        }
-
-        .pin-icon {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            color: var(--primary-color);
+        .media-overflow::-webkit-scrollbar {
             display: none;
         }
 
-        .review-card.pinned .pin-icon {
-            display: block;
+        .media-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 0.75rem;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid #f1f5f9;
+            transition: transform 0.2s;
+        }
+
+        .media-preview:hover {
+            transform: scale(1.05);
+        }
+
+        .card-actions {
+            margin-top: auto;
+        }
+
+        .pin-button {
+            width: 100%;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .pin-button.is-pinned {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .pin-button.not-pinned {
+            background: #f1f5f9;
+            color: var(--text-muted);
+        }
+
+        .pin-button:hover {
+            transform: scale(1.02);
+            filter: brightness(0.95);
+        }
+
+        .pin-badge {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            display: none;
+        }
+
+        .review-card.pinned .pin-badge {
+            display: flex;
         }
 
         .logout-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            background: white;
+            color: #ef4444;
+            border: 1px solid #fee2e2;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
             cursor: pointer;
-            font-weight: 500;
+            transition: all 0.2s;
         }
 
         .logout-btn:hover {
-            background: #dc2626;
+            background: #fef2f2;
+            border-color: #fecaca;
         }
 
-        /* Improved Filter Styling */
-        .filters {
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 5rem 2rem;
             background: white;
-            padding: 1rem;
-            border-radius: 1rem;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
+            border-radius: 2rem;
+            border: 2px dashed var(--border);
         }
 
-        select.filter-btn {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
-            padding-right: 2.5rem;
-            min-width: 200px;
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
         }
 
-        .stats-bar {
-            display: flex;
-            gap: 2rem;
-            background: #f1f5f9;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #0f172a;
+        .empty-state p {
+            color: var(--text-muted);
         }
     </style>
 </head>
@@ -272,42 +443,50 @@
 
     <div class="container">
         <header>
-            <h1>Review Admin</h1>
+            <h1>Review Center</h1>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
-        <div class="stats-bar" id="stats-container">
-            <div class="stat-item">
-                <span class="stat-label">Total Reviews</span>
-                <span class="stat-value" id="stat-count">0</span>
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Volume</span>
+                <div class="stat-value" id="stat-count">0 <span>Reviews</span></div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Average Rating</span>
-                <span class="stat-value" id="stat-avg">0.0</span>
+            <div class="stat-card">
+                <span class="stat-label">Sentiment</span>
+                <div class="stat-value" id="stat-avg">0.0 <span>/ 5.0</span></div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Pending Sync</span>
+                <div class="stat-value">0 <span>Items</span></div>
+            </div>
+        </section>
+
+        <div class="controls-row">
+            <div class="filter-group">
+                <button class="filter-btn active" id="btn-all" onclick="filterReviews('all')">All</button>
+                <button class="filter-btn" id="btn-pinned" onclick="filterReviews('pinned')">Featured</button>
+            </div>
+
+            <div class="custom-select-wrapper">
+                <select id="handle-filter" class="custom-select" onchange="renderReviews()">
+                    <option value="all">All Product Units</option>
+                </select>
+                <svg class="select-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
             </div>
         </div>
 
-        <div class="filters">
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <button class="filter-btn active" onclick="filterReviews('all')">All Reviews</button>
-                <button class="filter-btn" onclick="filterReviews('pinned')">Pinned Only</button>
-            </div>
-            <select id="handle-filter" class="filter-btn" onchange="renderReviews()">
-                <option value="all">All Products</option>
-            </select>
-        </div>
-
-        <div class="reviews-grid" id="reviews-container">
-            <!-- Reviews will be injected here -->
-        </div>
+        <main class="reviews-grid" id="reviews-container">
+            <!-- Reviews dynamically injected -->
+        </main>
     </div>
 
     <script>
-        // Auth check
         const token = localStorage.getItem('authToken');
-        if (!token) {
-            window.location.href = '/';
-        }
+        if (!token) window.location.href = '/';
 
         let allReviews = [];
         let currentFilter = 'all';
@@ -319,116 +498,98 @@
                 });
 
                 if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                        logout();
-                        return;
-                    }
-
-                    let errorMessage = `Server error (${response.status})`;
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.message || errorData.error || errorMessage;
-                    } catch (e) {
-                        errorMessage = await response.text();
-                    }
-
-                    console.error('Server error response:', errorMessage);
-                    throw new Error(errorMessage);
+                    if (response.status === 401 || response.status === 403) return logout();
+                    throw new Error(`Server error (${response.status})`);
                 }
 
                 const data = await response.json();
-                console.log('📦 Received Review Data:', data);
-
                 allReviews = data.reviews;
 
-                // Populate Handle Filter
+                // Sync handle filter dropdown
                 const handleFilter = document.getElementById('handle-filter');
-                const handles = [...new Set(allReviews.map(r => r.handle))].filter(Boolean);
+                const uniqueHandles = [...new Set(allReviews.map(r => r.handle))].filter(Boolean).sort();
 
-                // Keep "All Products" and add the others
-                handleFilter.innerHTML = '<option value="all">All Products</option>';
-                handles.sort().forEach(h => {
+                handleFilter.innerHTML = '<option value="all">All Product Units</option>';
+                uniqueHandles.forEach(h => {
                     const opt = document.createElement('option');
                     opt.value = h;
-                    opt.textContent = h;
+                    opt.textContent = h.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                     handleFilter.appendChild(opt);
                 });
 
                 if (allReviews.length === 0) {
-                    document.getElementById('reviews-container').innerHTML =
-                        '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">' +
-                        '<h3>No reviews found</h3>' +
-                        '<p>Reviews will appear here once they are submitted and published.</p>' +
-                        '</div>';
+                    showEmpty();
                 } else {
                     renderReviews();
                 }
             } catch (error) {
-                console.error('Error fetching reviews:', error);
-                document.getElementById('reviews-container').innerHTML =
-                    `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #ef4444;">` +
-                    `<h3>Error loading reviews</h3>` +
-                    `<p style="background: #fee2e2; padding: 10px; border-radius: 4px; display: inline-block; margin-top: 10px;">${error.message}</p>` +
-                    `<p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">Check your JUDGE_ME_API_TOKEN and SHOP_DOMAIN in Vercel settings.</p>` +
-                    `</div>`;
+                console.error(error);
+                document.getElementById('reviews-container').innerHTML = `
+                    <div class="empty-state" style="border-color: #fee2e2; background: #fffafb;">
+                        <h3 style="color: #ef4444;">Connection Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
             }
         }
 
         function renderReviews() {
             const container = document.getElementById('reviews-container');
-            const handleFilter = document.getElementById('handle-filter').value;
+            const selectedHandle = document.getElementById('handle-filter').value;
             container.innerHTML = '';
 
             const filtered = allReviews.filter(r => {
                 const pinMatch = currentFilter === 'pinned' ? r.is_pinned : true;
-                const handleMatch = handleFilter === 'all' ? true : r.handle === handleFilter;
+                const handleMatch = selectedHandle === 'all' ? true : r.handle === selectedHandle;
                 return pinMatch && handleMatch;
             });
 
             updateStats(filtered);
 
             if (filtered.length === 0) {
-                container.innerHTML = '<p>No reviews found matching this filter.</p>';
+                showEmpty();
                 return;
             }
 
-            filtered.forEach(review => {
+            filtered.forEach((review, index) => {
                 const card = document.createElement('div');
                 card.className = `review-card ${review.is_pinned ? 'pinned' : ''}`;
+                card.style.animationDelay = `${index * 0.05}s`;
 
                 const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
 
                 card.innerHTML = `
-                    <div class="pin-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/></svg>
+                    <div class="pin-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/></svg>
                     </div>
                     <div class="card-header">
                         <img src="${review.profile_pic}" alt="${review.author}" class="avatar">
-                        <div class="author-info">
+                        <div class="author-meta">
                             <h3>${review.author}</h3>
-                            <span>${new Date(review.date).toLocaleDateString()}</span>
+                            <span class="author-date">${new Date(review.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                             ${review.handle ? `<span class="handle-tag">${review.handle}</span>` : ''}
                         </div>
                     </div>
-                    <div class="rating">${stars}</div>
-                    ${review.title ? `<div class="title">${review.title}</div>` : ''}
-                    <div class="body">${review.body}</div>
+                    <div class="rating-stars">${stars}</div>
+                    ${review.title ? `<div class="review-title">${review.title}</div>` : ''}
+                    <div class="review-body">${review.body}</div>
                     
                     ${review.media && review.media.length > 0 ? `
-                        <div class="media-grid">
+                        <div class="media-overflow">
                             ${review.media.map(m => `
-                                <img src="${m.url}" 
-                                     class="media-item" 
-                                     alt="Review Media" 
-                                     onerror="this.style.display='none'; console.warn('Failed to load image:', '${m.url}')">
+                                <img src="${m.url}" class="media-preview" alt="Media" 
+                                     onerror="this.style.display='none'">
                             `).join('')}
                         </div>
                     ` : ''}
                     
-                    <button class="pin-btn ${review.is_pinned ? 'is-pinned' : 'not-pinned'}" 
-                            onclick="togglePin(${review.id}, ${!review.is_pinned})">
-                        ${review.is_pinned ? 'Unpin Review' : 'Pin Review'}
-                    </button>
+                    <div class="card-actions">
+                        <button class="pin-button ${review.is_pinned ? 'is-pinned' : 'not-pinned'}" 
+                                onclick="togglePin(${review.id}, ${!review.is_pinned})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12V4H17V2H7V4H8V12L6 14V16H11V22H13V16H18V14L16 12Z"/></svg>
+                            ${review.is_pinned ? 'Unfeature' : 'Feature Review'}
+                        </button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -443,22 +604,18 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ id: id, action: action })
+                    body: JSON.stringify({ id, action })
                 });
 
                 if (res.ok) {
-                    // Update local state optimistically
                     const review = allReviews.find(r => r.id === id);
                     if (review) {
                         review.is_pinned = shouldPin;
                         renderReviews();
                     }
-                } else {
-                    alert('Failed to update pin status');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Error connecting to server');
             }
         }
 
@@ -467,15 +624,26 @@
             const totalRating = filtered.reduce((sum, r) => sum + r.rating, 0);
             const average = count > 0 ? (totalRating / count).toFixed(1) : '0.0';
 
-            document.getElementById('stat-count').textContent = count;
-            document.getElementById('stat-avg').textContent = average;
+            document.getElementById('stat-count').innerHTML = `${count} <span>Reviews</span>`;
+            document.getElementById('stat-avg').innerHTML = `${average} <span>/ 5.0</span>`;
         }
 
         function filterReviews(type) {
             currentFilter = type;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.getElementById(`btn-${type}`).classList.add('active');
             renderReviews();
+        }
+
+        function showEmpty() {
+            document.getElementById('reviews-container').innerHTML = `
+                <div class="empty-state">
+                    <h3>No matching reviews</h3>
+                    <p>Try adjusting your search filters or product units.</p>
+                </div>
+            `;
+            document.getElementById('stat-count').innerHTML = `0 <span>Reviews</span>`;
+            document.getElementById('stat-avg').innerHTML = `0.0 <span>/ 5.0</span>`;
         }
 
         function logout() {
@@ -483,7 +651,6 @@
             window.location.href = '/public/login.html';
         }
 
-        // Initial Load
         fetchReviews();
     </script>
 </body>
