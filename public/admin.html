@@ -60,6 +60,7 @@
             letter-spacing: -0.02em;
             background: linear-gradient(135deg, #0f172a 0%, #6366f1 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -608,7 +609,7 @@
                 });
 
                 if (res.ok) {
-                    const review = allReviews.find(r => r.id === id);
+                    const review = allReviews.find(r => String(r.id) === String(id));
                     if (review) {
                         review.is_pinned = shouldPin;
                         renderReviews();

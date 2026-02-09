@@ -82,8 +82,19 @@ try {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const GENDER_CACHE = {};
-const PINNED_FILE = path.join(__dirname, '../config/pinned_reviews.json');
-const USERS_FILE = path.join(__dirname, '../config/users.json');
+const CONFIG_DIR = path.join(__dirname, '../config');
+const PINNED_FILE = path.join(CONFIG_DIR, 'pinned_reviews.json');
+const USERS_FILE = path.join(CONFIG_DIR, 'users.json');
+
+// Ensure config directory exists for local fallback
+if (!fs.existsSync(CONFIG_DIR)) {
+    try {
+        fs.mkdirSync(CONFIG_DIR, { recursive: true });
+        console.log('✅ Created missing config directory');
+    } catch (err) {
+        console.warn('⚠️ Could not create config directory:', err.message);
+    }
+}
 
 // --- HELPER FUNCTIONS ---
 
